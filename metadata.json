@@ -13,7 +13,7 @@
     }
   ],
   "dependencies": [
-    { "name": "adrienthebo/puppet-alternatives", "version_requirement": ">=0.1.1" },
-    { "name": "puppetlabs/puppetlabs-ruby", "version_requirement": ">=0.1.0" }
+    { "name": "adrien/alternatives", "version_requirement": ">=0.1.1" },
+    { "name": "puppetlabs/ruby", "version_requirement": ">=0.1.0" }
   ]
 }
