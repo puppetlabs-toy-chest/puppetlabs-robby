@@ -1,24 +1,25 @@
 class robby (
   $deploy_key,
+  $deploy_app = true,
   $revision = undef,
   $robby_path  = '/opt/robby',
   $robby_home_directory = undef,
   $run_as_user = 'robby',
-  $environment = 'production',
+  $ldap_admin_cn,
+  $ldap_host,
+  $ldap_admin_password,
+  $ldap_people_ou
 ) {
 
   $application_root = "${robby_path}/src"
 
-  if $environment == 'development' {
-    $bundler_require = Class['robby::packages','robby::ruby']
-    $unicorn_require = [
-      Class['ruby::dev','robby::ruby','robby::user'],
-      File['/var/log/robby','/var/run/robby'],
-      Bundler::Install[$application_root]
+  if $deploy_app {
+
+    $bundler_require = [
+      Class['robby::packages','robby::ruby','::ruby','::ruby::dev'],
+      Vcsrepo[$robby_path]
     ]
 
-  } else {
-    $bundler_require = [Class['robby::packages','robby::ruby'], Vcsrepo[$robby_path]]
     $unicorn_require = [
       Class['ruby::dev','robby::ruby','robby::user'],
       File['/var/log/robby','/var/run/robby'],
@@ -30,7 +31,7 @@ class robby (
       ensure  => directory,
       owner   => 'robby',
       group   => 'robby',
-      mode    => 0755,
+      mode    => '0755',
       require => Class['robby::user'],
     }
 
@@ -42,6 +43,17 @@ class robby (
       user     => 'robby',
       require  => [File[$robby_path],Class['robby::user']],
     }
+
+  } else {
+
+    $bundler_require = Class['robby::packages','robby::ruby','::ruby','::ruby::dev']
+
+    $unicorn_require = [
+      Class['ruby::dev','robby::ruby','robby::user'],
+      File['/var/log/robby','/var/run/robby'],
+      Bundler::Install[$application_root]
+    ]
+
   }
 
   class { 'robby::user':
@@ -59,18 +71,27 @@ class robby (
     require => $bundler_require,
   }
 
+  file { '/etc/robby_ldap.yaml':
+    ensure  => file,
+    content => template('robby/ldap.yaml.erb'),
+    owner   => 'robby',
+    group   => 0,
+    mode    => '0640',
+    notify  => Unicorn::App['robby'],
+  }
+
   file { '/var/run/robby':
     ensure => directory,
     owner  => 'robby',
     group  => 'robby',
-    mode   => 0750,
+    mode   => '0750',
   }
 
   file { '/var/log/robby':
     ensure => directory,
     owner  => 'robby',
     group  => 'robby',
-    mode   => 0750,
+    mode   => '0750',
   }
 
   unicorn::app { 'robby':
