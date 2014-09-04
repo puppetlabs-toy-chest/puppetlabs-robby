@@ -84,7 +84,7 @@ class robby (
     ensure => directory,
     owner  => 'robby',
     group  => 'robby',
-    mode   => '0750',
+    mode   => '0755',
   }
 
   file { '/var/log/robby':
