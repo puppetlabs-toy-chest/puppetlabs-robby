@@ -11,10 +11,20 @@ class robby (
 
   if $environment == 'development' {
     $bundler_require = Class['robby::packages','robby::ruby']
-    $unicorn_require = [Class['ruby::dev','robby::ruby','robby::user'], Bundler::Install[$application_root]]
+    $unicorn_require = [
+      Class['ruby::dev','robby::ruby','robby::user'],
+      File['/var/log/robby','/var/run/robby'],
+      Bundler::Install[$application_root]
+    ]
+
   } else {
     $bundler_require = [Class['robby::packages','robby::ruby'], Vcsrepo[$robby_path]]
-    $unicorn_require = [Class['ruby::dev','robby::ruby','robby::user'], Vcsrepo[$robby_path], Bundler::Install[$application_root]]
+    $unicorn_require = [
+      Class['ruby::dev','robby::ruby','robby::user'],
+      File['/var/log/robby','/var/run/robby'],
+      Bundler::Install[$application_root],
+      Vcsrepo[$robby_path]
+    ]
 
     file { $robby_path:
       ensure  => directory,
@@ -49,10 +59,26 @@ class robby (
     require => $bundler_require,
   }
 
+  file { '/var/run/robby':
+    ensure => directory,
+    owner  => 'robby',
+    group  => 'robby',
+    mode   => 0750,
+  }
+
+  file { '/var/log/robby':
+    ensure => directory,
+    owner  => 'robby',
+    group  => 'robby',
+    mode   => 0750,
+  }
+
   unicorn::app { 'robby':
     approot     => $application_root,
-    pidfile     => "${application_root}/unicorn.pid",
-    socket      => "${application_root}/unicorn.sock",
+    config_file => '/etc/unicorn_robby.rb',
+    logdir      => '/var/log/robby',
+    pidfile     => "/var/run/robby/unicorn.pid",
+    socket      => "/var/run/robby/unicorn.sock",
     user        => $run_as_user,
     group       => $run_as_user,
     preload_app => true,
