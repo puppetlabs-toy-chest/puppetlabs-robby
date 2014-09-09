@@ -8,7 +8,8 @@ class robby (
   $ldap_admin_cn,
   $ldap_host,
   $ldap_admin_password,
-  $ldap_people_ou
+  $ldap_people_ou,
+  $environment = 'production'
 ) {
 
   $application_root = "${robby_path}/src"
@@ -103,7 +104,7 @@ class robby (
     user        => $run_as_user,
     group       => $run_as_user,
     preload_app => true,
-    rack_env    => 'production',
+    rack_env    => $environment,
     source      => 'bundler',
     require     => $unicorn_require,
   }

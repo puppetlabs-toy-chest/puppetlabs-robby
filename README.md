@@ -82,6 +82,13 @@ The password of the admin user defined in **ldap_admin_cn**
 The base OU path in ldap where CN objects of people in the organization are in.
 An example value is **ou=users,dc=example,dc=com**
 
+###Parameter: environment
+**Required: no**
+**Default value: production**
+
+The rack environment.  The value set with this parameter sets the rack
+environment the unicorn application will be set to.
+
 ## Choosing a http server
 
 This module deploys the Robby application and manages the unicorn service
