@@ -62,7 +62,9 @@ class robby (
     home_directory => $robby_home_directory,
   }
 
-  class { 'robby::ruby': }
+  class { 'robby::ruby': 
+    before => Class['bundler'],
+  }
 
   class { 'robby::packages':
     require => Class['robby::ruby'],
