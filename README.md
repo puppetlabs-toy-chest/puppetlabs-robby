@@ -17,29 +17,22 @@ The only class necessary to declare is **robby**.  Most parameter defaults will
 be fine.  The only required parameters is the deploy_key and ldap setting
 parameters.
 
-###Parameter: deploy_key
-**Required: yes**
-
-The deploy_key parameter accepts the private RSA key for the deploy key added
-to the [OfficeMap](https://github.com/puppetlabs/OfficeMap) repository.  It's
-added to the ~robby/.ssh/id_rsa file so git can be used to deploy the
-application directly from github.
-
 ###Parameter: deploy_app
 **Required: no**
 **Default value: true**
 
-This parameter sets whether or not to clone the application from github. It
-exists to serve the Robby application's development environment where Vagrant
-shares the git clone to the destination directory, making a deployment clone
-unnecessary.
+This parameter sets whether or not to declare the package resource that
+installs the application. The only time you'd want to set this to **false** is
+during development. It exists to serve the Robby application's development
+environment where Vagrant shares the git clone to the destination directory,
+making a package deploy unnecessary.
 
-###Parameter: revision
+###Parameter: version 
 **Required: no**
-**Default value: undef**
+**Default value: latest**
 
-This parameter accepts a git commit number to deploy to the node.  If left
-unset, it deploy HEAD on the master branch.
+This parameter accepts a package version.  If left
+unset, it installs the latest version every run.
 
 ###Parameter: robby_path
 **Required: no**
@@ -53,12 +46,6 @@ Where to install the application on the node.
 
 A robby user is created by this class to store the deployment SSH key.  This
 parameter sets that user's home directory which defaults to /home/robby.
-
-###Parameter: run_as_user
-**Required: no**
-**Default value: robby
-
-This parameter sets which user to run the unicorn process as.
 
 ###Parameter: ldap_admin_cn
 **Required: yes**
@@ -82,13 +69,6 @@ The password of the admin user defined in **ldap_admin_cn**
 The base OU path in ldap where CN objects of people in the organization are in.
 An example value is **ou=users,dc=example,dc=com**
 
-###Parameter: environment
-**Required: no**
-**Default value: production**
-
-The rack environment.  The value set with this parameter sets the rack
-environment the unicorn application will be set to.
-
 ## Choosing a http server
 
 This module deploys the Robby application and manages the unicorn service
@@ -102,13 +82,27 @@ profile that looks like this:
 ```
 class profile::robby {
 
-  include git
+  include ruby
   include robby
 
   nginx::unicorn { 'robby':
     servername     => 'robby.example.com',
-    path           => '/opt/robby/src',
+    path           => '/opt/robby',
     unicorn_socket => '/var/run/robby/unicorn.sock',
+  }
+
+  unicorn::app { 'robby':
+    approot     => '/opt/robby',
+    config_file => '/etc/unicorn_robby.rb',
+    logdir      => '/var/log/robby',
+    pidfile     => "/var/run/robby/unicorn.pid",
+    socket      => "/var/run/robby/unicorn.sock",
+    user        => 'robby',
+    group       => 'robby',
+    preload_app => true,
+    rack_env    => 'production',
+    source      => 'bundler',
+    subscribe   => Class['robby'],
   }
 }
 ```
