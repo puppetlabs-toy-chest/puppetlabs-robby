@@ -20,13 +20,7 @@ class robby (
 
   class { 'robby::user': }
 
-  class { 'robby::ruby':
-    before => Class['bundler'],
-  }
-
-  class { 'robby::packages':
-    require => Class['robby::ruby'],
-  }
+  class { 'robby::packages': }
 
   if $deploy_app {
     package { 'robby':
@@ -50,7 +44,7 @@ class robby (
     mode   => '0755',
   }
 
-  bundler::install { $application_root:
-    require => Class['robby::packages','robby::ruby','::ruby','::ruby::dev']
+  bundler::install { $robby_path:
+    require => Class['robby::packages']
   }
 }
