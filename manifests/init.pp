@@ -39,7 +39,7 @@ class robby (
     mode   => '0755',
   }
 
-  file { '/var/log/robby':
+  file { ['/var/log/robby','/var/log/robby/guess_results']:
     ensure => directory,
     mode   => '0755',
   }
