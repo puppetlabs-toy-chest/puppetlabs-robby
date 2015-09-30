@@ -1,5 +1,5 @@
 {
-  "robby": "puppetlabs-robby",
+  "name": "puppetlabs-robby",
   "version": "0.1",
   "license": "Internal",
   "source": "https://github.com/puppetlabs/puppetlabs-robby",
